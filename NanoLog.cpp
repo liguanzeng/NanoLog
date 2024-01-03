@@ -106,9 +106,22 @@ namespace nanolog
 	return "XXXX";
     }
 
+	/*
+		模板函数,用于将参数编码到日志行中
+
+		第一个函数`encode`接受一个参数`arg`,并将其存储到日志行的缓冲区中
+			它使用`reinterpret_cast`将参数`arg`的值直接存储到缓冲区中,并增加`m_bytes_used`以跟踪已使用的字节数
+
+		第二个函数`encode`接受两个参数,`arg`和`type_id`,并将它们编码到日志行中
+			它首先根据参数的大小和`uint8_t`类型的大小来调整缓冲区的大小,然后依次编码`type_id`和`arg`到缓冲区中
+
+		这些函数使用模板参数`Arg`,这意味着它们可以接受任何类型的参数这使得这些函数非常灵活,可以用于编码不同类型的数据到日志行中
+	*/
     template < typename Arg >
     void NanoLogLine::encode(Arg arg)
     {
+		// buffer是char类型指针,指向缓冲区地址;
+		// 这里的操作是将缓冲区地址用reinterpret_cast类型转换强制解释成了Arg指针类型,并将arg赋值给转型后的指针
 	*reinterpret_cast<Arg*>(buffer()) = arg;
 	m_bytes_used += sizeof(Arg);
     }
@@ -121,6 +134,7 @@ namespace nanolog
 	encode < Arg >(arg);
     }
 
+	// NanoLogLine的构造函数,初始化了两个变量并且将一些信息encode到缓冲区
     NanoLogLine::NanoLogLine(LogLevel level, char const * file, char const * function, uint32_t line)
 	: m_bytes_used(0)
 	, m_buffer_size(sizeof(m_stack_buffer))

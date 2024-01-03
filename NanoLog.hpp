@@ -35,9 +35,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 namespace nanolog
 {
     /*
-    	c++11引入的enum class提供了类型安全,这意味着枚举类型的值不会隐式转换为整数,从而避免了一些潜在的错误
-	其次,enum class的枚举器名称是局部于枚举类型的,不会污染周围的命名空间,避免了名称冲突
-	此外,enum class可以进行前向声明,而普通的enum则不行 
+		定义了一个名为LogLevel的enum class,它包含了三种日志级别：INFO,WARN和CRIT。每个级别都有一个关联的整数值,分别是0,1和2
+		c++11引入的enum class提供了类型安全,这意味着枚举类型的值不会隐式转换为整数,从而避免了一些潜在的错误
+		其次,enum class的枚举器名称是局部于枚举类型的,不会污染周围的命名空间,避免了名称冲突
+		此外,enum class可以进行前向声明,而普通的enum则不行 
      */
     enum class LogLevel : uint8_t { INFO, WARN, CRIT };
     
@@ -87,6 +88,7 @@ namespace nanolog
 
 	struct string_literal_t
 	{
+		// explicit关键字用于构造函数,以防止它执行隐式转换
 	    explicit string_literal_t(char const * s) : m_s(s) {}
 	    char const * m_s;
 	};
@@ -94,6 +96,8 @@ namespace nanolog
     private:	
 	char * buffer();
 
+	// encode将内容写入内存,stringify将内存中的内容输送到ostream
+	
 	template < typename Arg >
 	void encode(Arg arg);
 
