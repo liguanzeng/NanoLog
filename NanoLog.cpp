@@ -54,7 +54,7 @@ namespace
 	char buffer[32];
 	strftime(buffer, 32, "%Y-%m-%d %T.", gmtime);
 	char microseconds[7];
-	sprintf(microseconds, "%06llu", timestamp % 1000000);
+	sprintf(microseconds, "%06lu", timestamp % 1000000);
 	os << '[' << buffer << microseconds << ']';
     }
 
@@ -64,6 +64,13 @@ namespace
 	return id;
     }
 
+	/*
+		这段代码是一个模板元编程的示例,它定义了一个用于在元组中查找特定类型的索引的模板结构
+		在这段代码中,`TupleIndex` 结构模板接受两个模板参数,分别是类型 `T` 和类型 `Tuple`它通过递归地匹配元组中的类型,来确定类型 `T` 在元组中的索引位置
+		第一个模板特化定义了当类型 `T` 与元组的第一个类型匹配时的行为,它将 `value` 设置为 0,表示类型 `T` 在元组中的索引位置为 0
+		第二个模板特化定义了当类型 `T` 与元组的第一个类型不匹配时的行为,宿主递归地继续匹配元组的剩余部分,并将 `value` 设置为 1 加上递归匹配的结果,表示类型 `T` 在元组中的索引位置为递归匹配结果加 1
+		这段代码充分利用了模板特化和递归的特性,通过编译时的类型匹配来确定类型在元组中的索引位置,是一种典型的模板元编程技术
+	*/
     template < typename T, typename Tuple >
     struct TupleIndex;
 
@@ -128,11 +135,22 @@ namespace nanolog
 
     NanoLogLine::~NanoLogLine() = default;
 
+	/*
+		这段代码是C++中的一种字符串化操作,用于将日志信息转换为字符串并输出到流中.
+		1. 首先,代码中定义了一个 `stringify` 方法,它接受一个 `std::ostream` 类型的流对象作为参数.
+		2. 接着,代码中使用指针 `b` 来指向日志信息的缓冲区.根据缓冲区的类型（堆缓冲区或栈缓冲区）,确定指针 `b` 的初始位置.
+		3. 然后,代码通过指针 `b` 逐步解析日志信息的各个部分,包括时间戳、线程ID、文件名、函数名、行号和日志级别.这些信息被依次解析并存储到相应的变量中.
+		4. 接下来,代码调用 `format_timestamp` 方法,将时间戳格式化并输出到流中.
+		5. 然后,代码将日志级别、线程ID、文件名、函数名和行号等信息以特定格式输出到流中.
+		6. 接着,代码调用自身的递归函数 `stringify`,将缓冲区中剩余的信息逐步输出到流中.
+		7. 最后,代码根据日志级别的严重程度,决定是否刷新流.
+		总的来说,这段代码的功能是将日志信息转换为字符串,并输出到指定的流中,同时根据日志级别的不同采取相应的输出和刷新策略.
+	*/
     void NanoLogLine::stringify(std::ostream & os)
     {
 	char * b = !m_heap_buffer ? m_stack_buffer : m_heap_buffer.get();
 	char const * const end = b + m_bytes_used;
-	uint64_t timestamp = *reinterpret_cast < uint64_t * >(b); b += sizeof(uint64_t);
+	uint64_t timestamp = *reinterpret_cast < uint64_t * >(b); b += sizeof(uint64_t);	// 这里b第一次指向的内存保存了时间戳吗？
 	std::thread::id threadid = *reinterpret_cast < std::thread::id * >(b); b += sizeof(std::thread::id);
 	string_literal_t file = *reinterpret_cast < string_literal_t * >(b); b += sizeof(string_literal_t);
 	string_literal_t function = *reinterpret_cast < string_literal_t * >(b); b += sizeof(string_literal_t);
@@ -319,7 +337,7 @@ namespace nanolog
     struct BufferBase
     {
 	virtual ~BufferBase() = default;
-    	virtual void push(NanoLogLine && logline) = 0;
+    virtual void push(NanoLogLine && logline) = 0;
 	virtual bool try_pop(NanoLogLine & logline) = 0;
     };
 

@@ -34,6 +34,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 namespace nanolog
 {
+    /*
+    	c++11引入的enum class提供了类型安全,这意味着枚举类型的值不会隐式转换为整数,从而避免了一些潜在的错误
+	其次,enum class的枚举器名称是局部于枚举类型的,不会污染周围的命名空间,避免了名称冲突
+	此外,enum class可以进行前向声明,而普通的enum则不行 
+     */
     enum class LogLevel : uint8_t { INFO, WARN, CRIT };
     
     class NanoLogLine
@@ -41,12 +46,14 @@ namespace nanolog
     public:
 	NanoLogLine(LogLevel level, char const * file, char const * function, uint32_t line);
 	~NanoLogLine();
-
+	
+	// 移动构造,移动赋值运算符
 	NanoLogLine(NanoLogLine &&) = default;
 	NanoLogLine& operator=(NanoLogLine &&) = default;
 
 	void stringify(std::ostream & os);
-
+	
+	// <<操作符重载
 	NanoLogLine& operator<<(char arg);
 	NanoLogLine& operator<<(int32_t arg);
 	NanoLogLine& operator<<(uint32_t arg);
