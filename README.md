@@ -1,4 +1,39 @@
 # NanoLog
+
+本项目是一个C++的日志库，名为NanoLog。它提供了高性能的日志记录功能，支持多线程环境下的异步日志记录。
+
+该库的主要特点包括：
+
+1. **多线程日志记录**：NanoLog支持多线程环境下的异步日志记录，通过使用环形缓冲区和队列缓冲区来实现日志的异步写入。
+
+2. **日志级别控制**：支持日志级别控制，可以根据日志级别来过滤日志输出。
+
+3. **日志文件滚动**：支持日志文件的滚动，可以根据文件大小来触发日志文件的切换。
+
+4. **MIT许可证**：该库使用MIT许可证，允许自由使用、修改和分发。
+
+5. **高性能**：NanoLog旨在提供高性能的日志记录功能，通过使用环形缓冲区和异步写入来减少对性能的影响。
+
+在代码中，有一些关键的类和函数：
+
+- `NanoLogLine`：表示一条日志记录，它包含了日志的级别、时间戳、线程ID等信息，以及日志内容的编码和解码函数。
+
+- `BufferBase`：表示日志缓冲区的基类，定义了日志记录和日志读取的接口。
+
+- `RingBuffer`和`QueueBuffer`：分别表示环形缓冲区和队列缓冲区，用于异步写入日志。
+
+- `FileWriter`：用于将日志写入文件，并支持日志文件的滚动。
+
+- `NanoLogger`：表示日志记录器，负责将日志写入缓冲区，并在后台线程中异步写入日志文件。
+
+- `initialize`：用于初始化日志记录器，可以选择非保证日志记录和保证日志记录两种模式。
+
+- `set_log_level`和`is_logged`：用于设置日志级别和判断是否需要记录某个级别的日志。
+
+总的来说，NanoLog是一个高性能的C++日志库，适用于需要在多线程环境下进行异步日志记录的应用场景。
+
+# 以下是原README
+
 * Low Latency C++11 Logging Library. 
 * It's fast. Very fast. See [Latency benchmark](#latency-benchmark-of-guaranteed-logger)
 * NanoLog only uses standard headers so it should work with any C++11 compliant compiler.
