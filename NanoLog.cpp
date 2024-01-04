@@ -185,6 +185,7 @@ namespace nanolog
 	    os.flush();
     }
 
+	// 与encode是相反的过程,将内存中的二进制数据解码为对应类型的数据并写入到输出流中
     template < typename Arg >
     char * decode(std::ostream & os, char * b, Arg * dummy)
     {
@@ -212,6 +213,10 @@ namespace nanolog
 	return ++b;
     }
 
+	/*
+		根据 type_id 的值, 对 start 指向的字符数组进行解码,并根据解码后的类型调用 stringify 方法
+		这个过程会不断递归, 直到 type_id 的值为 0 到 7 中的某一个
+	*/
     void NanoLogLine::stringify(std::ostream & os, char * start, char const * const end)
     {
 	if (start == end)
@@ -248,6 +253,7 @@ namespace nanolog
 	}
     }
 
+	// 返回一个指针,指向当前可用的缓冲区,具体指向栈上的缓冲区或堆上的缓冲区取决于 m_heap_buffer 是否为空
     char * NanoLogLine::buffer()
     {
 	return !m_heap_buffer ? &m_stack_buffer[m_bytes_used] : &(m_heap_buffer.get())[m_bytes_used];
@@ -587,6 +593,19 @@ namespace nanolog
     	unsigned int m_read_index;
     };
 
+	/*
+		这段代码定义了一个名为FileWriter的类,它用于将日志写入文件.让我来解释一下这段代码的功能:
+
+		1. **构造函数**:构造函数接受日志目录（log_directory）、日志文件名（log_file_name）和日志文件滚动大小（log_file_roll_size_mb）作为参数.在构造函数中,它将日志文件滚动大小转换为字节数,并初始化了m_name,然后调用了roll_file()函数.
+
+		2. **write函数**:write函数接受一个NanoLogLine对象的引用,并将其写入文件.它首先获取当前文件流的位置,然后将日志内容写入文件流,并更新m_bytes_written.如果写入的字节数超过了日志文件滚动大小,就调用roll_file()函数来滚动文件.
+
+		3. **roll_file函数**:roll_file函数用于滚动文件,即关闭当前的文件流,重置已写入的字节数,创建一个新的文件流,并将文件名编号递增后写入新文件.
+
+		4. **私有成员**:类中还包含了一些私有成员变量,包括m_file_number（文件编号）、m_bytes_written（已写入的字节数）、m_log_file_roll_size_bytes（日志文件滚动大小）、m_name（日志文件名）和m_os（文件流）.
+
+		总之,这段代码实现了一个简单的文件写入器,用于将日志写入文件,并在达到一定大小时滚动到新的文件.
+	*/
     class FileWriter
     {
     public:
@@ -632,7 +651,7 @@ namespace nanolog
 	std::streamoff m_bytes_written = 0;
 	uint32_t const m_log_file_roll_size_bytes;
 	std::string const m_name;
-	std::unique_ptr < std::ofstream > m_os;
+	std::unique_ptr < std::ofstream > m_os;		// 文件流
     };
 
     class NanoLogger
@@ -704,8 +723,8 @@ namespace nanolog
 	std::thread m_thread;
     };
 
-    std::unique_ptr < NanoLogger > nanologger;
-    std::atomic < NanoLogger * > atomic_nanologger;
+    std::unique_ptr < NanoLogger > nanologger;		// 智能指针,用于管理动态分配的内存资源,对象不再需要时自动释放内存,避免内存泄漏
+    std::atomic < NanoLogger * > atomic_nanologger;	// 创建院子类型,确保对共享变量的操作是原子的
 
     bool NanoLog::operator==(NanoLogLine & logline)
     {
