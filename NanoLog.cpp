@@ -90,6 +90,7 @@ namespace
 
 namespace nanolog
 {
+	// 支持的类型, 存储在std::tuple中
     typedef std::tuple < char, uint32_t, uint64_t, int32_t, int64_t, double, NanoLogLine::string_literal_t, char * > SupportedTypes;
 
     char const * to_string(LogLevel loglevel)
@@ -282,6 +283,7 @@ namespace nanolog
 	}
     }
 
+	// overload encode()
     void NanoLogLine::encode(char const * arg)
     {
 	if (arg != nullptr)
@@ -312,6 +314,7 @@ namespace nanolog
 	encode < string_literal_t >(arg, TupleIndex < string_literal_t, SupportedTypes >::value);
     }
 
+	// 重载 << 运算符,接收不同类型的参数,返回当前NanoLogLine对象的指针
     NanoLogLine& NanoLogLine::operator<<(std::string const & arg)
     {
 	encode_c_string(arg.c_str(), arg.length());
@@ -361,6 +364,10 @@ namespace nanolog
 	virtual bool try_pop(NanoLogLine & logline) = 0;
     };
 
+	/*
+		实现了一个基于 std::atomic_flag 的自旋锁,用于在多线程环境中保护临界区
+		确保多个线程不会同时访问共享资源,从而避免竞争条件和数据不一致的问题
+	*/
     struct SpinLock
     {
 	SpinLock(std::atomic_flag & flag) : m_flag(flag)
