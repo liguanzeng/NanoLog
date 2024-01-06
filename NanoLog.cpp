@@ -195,6 +195,7 @@ namespace nanolog
 	return b + sizeof(Arg);
     }
 
+	// 特化版本
     template <>
     char * decode(std::ostream & os, char * b, NanoLogLine::string_literal_t * dummy)
     {
@@ -359,7 +360,7 @@ namespace nanolog
 
     struct BufferBase
     {
-	virtual ~BufferBase() = default;
+	virtual ~BufferBase() = default;		// 虚析构能够确保基类指针对派生类对象进行操作时,能正确调用派生类对象的析构,避免内存泄漏
     virtual void push(NanoLogLine && logline) = 0;
 	virtual bool try_pop(NanoLogLine & logline) = 0;
     };
@@ -367,12 +368,13 @@ namespace nanolog
 	/*
 		实现了一个基于 std::atomic_flag 的自旋锁,用于在多线程环境中保护临界区
 		确保多个线程不会同时访问共享资源,从而避免竞争条件和数据不一致的问题
+		需要注意的是,使用自旋锁可能会导致线程长时间占用 CPU 资源,因此在实际应用中需要谨慎使用,并考虑是否有更好的并发控制方式
 	*/
     struct SpinLock
     {
 	SpinLock(std::atomic_flag & flag) : m_flag(flag)
 	{
-	    while (m_flag.test_and_set(std::memory_order_acquire));
+	    while (m_flag.test_and_set(std::memory_order_acquire));		// 在获取锁时执行自旋,直到成功获取锁为止
 	}
 
 	~SpinLock()
@@ -388,10 +390,10 @@ namespace nanolog
     class RingBuffer : public BufferBase
     {
     public:
-    	struct alignas(64) Item
+    	struct alignas(64) Item		// alignas(64)是c++11新特性,指示编译器将数据对齐到64字节的边界
     	{
 	    Item() 
-		: flag{ ATOMIC_FLAG_INIT }
+		: flag{ ATOMIC_FLAG_INIT }	// 0
 		, written(0)
 		, logline(LogLevel::INFO, nullptr, nullptr, 0)
 	    {
