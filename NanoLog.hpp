@@ -52,6 +52,7 @@ namespace nanolog
 	NanoLogLine(NanoLogLine &&) = default;
 	NanoLogLine& operator=(NanoLogLine &&) = default;
 
+	// 将日志行转换为字符串并输出
 	void stringify(std::ostream & os);
 	
 	// <<操作符重载
@@ -116,7 +117,7 @@ namespace nanolog
 	size_t m_buffer_size;
 	std::unique_ptr < char [] > m_heap_buffer;		// 同一时间只有一个 unique_ptr 实例可以拥有对动态分配对象的所有权
 	char m_stack_buffer[256 - 2 * sizeof(size_t) - sizeof(decltype(m_heap_buffer)) - 8 /* Reserved */];
-    };
+    };	// NanoLogLine
     
     struct NanoLog
     {
